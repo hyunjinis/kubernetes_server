@@ -8,7 +8,7 @@ vnstat_window=10
 repeat=10
 interval=10
 remote_user="orin2"
-remote_ip="155.230.16.157"
+remote_ip="192.168.0.3"
 remote_pass="oslab1slab"
 
 mkdir -p tes
@@ -26,20 +26,20 @@ for i in $(seq 1 $repeat); do
 
       # netperf 실행
       kubectl exec -it "$pod" -- \
-        netperf -H "$server_ip" -p 12865 -l 300 -- \
-        -m "$pkt" -- -R "${rate}M" >> tes/netperf_"$pod".txt &
+        netperf -H "$server_ip" -p 12865 -l 30 -- \
+        -m "$pkt" >> tes/netperf_"$pod".txt &
       #netperf=$(sshpass -p 0000 ssh -o StrictHostKeyChecking=no rpi1@155.230.16.157 -p 40011 "pgrep netperf | paste -sd ',' -")
 
       sleep 1  # 트래픽 유발 대기
 
       # 성능 측정
-      kubectl exec "$pod" -- \
+      kubectl exec -it "$pod" -- \
         vnstat -tr "$vnstat_window" | awk '/tx/' | awk '{print $2, $4}' >> tes/vnstat_"$pod".txt &
 
-      sshpass -p "$remote_pass" ssh -o StrictHostKeyChecking=no "$remote_user@$remote_ip" -p 40015 \
-        "nohup pidstat -G netperf 1 $vnstat_window" >> tes/pidstat_"$pod".txt &
+      sshpass -p "$remote_pass" ssh -o StrictHostKeyChecking=no "$remote_user@$remote_ip" \
+        "pidstat -G netperf 1 $vnstat_window" >> tes/pidstat_"$pod".txt &
 
-      kubectl exec "$pod" -- \
+      kubectl exec -it "$pod" -- \
         mpstat -P ALL "$vnstat_window" 1 | awk '/Average/' >> tes/mpstat_"$pod".txt &
 
       wait
@@ -55,8 +55,9 @@ for i in $(seq 1 $repeat); do
     wait "$pid"
   done
 
-  #echo "⏸️️️️️️️   ${interval}s 대기 중..."
+  #echo "⏸️   ${interval}s 대기 중..."
   sleep "$interval"
 done
 
 echo "모든 측정 완료"
+
