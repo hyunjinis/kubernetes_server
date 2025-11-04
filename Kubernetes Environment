@@ -31,11 +31,14 @@ sudo apt-get update
 CRI 설치
 sudo apt-get install -y containerd sudo mkdir -p /etc/containerd/
 
-containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1 sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1 
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
 
 sudo systemctl daemon-reload sudo systemctl start containerd sudo systemctl enable containerd
 
-sudo apt-get update sudo apt-get install -y kubelet kubeadm kubectl sudo apt-mark hold kubelet kubeadm kubectl
+sudo apt-get update 
+sudo apt-get install -y kubelet kubeadm kubectl 
+sudo apt-mark hold kubelet kubeadm kubectl
 
 cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1 to the file /boot/firmware/cmdline.txt. 
 
