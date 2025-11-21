@@ -1,0 +1,1341 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "name": "social-network"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "jaeger"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "jaeger"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "jaeger",
+            "labels": {
+              "name": "jaeger"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "jaeger",
+                "image": "jaegertracing/all-in-one:latest@sha256:30238ffd383f266651cd4e0c36be67b6b0d3d882d0bbb67304c39af9ee61a4ef",
+                "env": [
+                  {
+                    "name": "COLLECTOR_ZIPKIN_HTTP_PORT",
+                    "value": "9411"
+                  }
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "jaeger"
+      },
+      "spec": {
+        "type": "NodePort",
+        "ports": [
+          {
+            "name": "16686",
+            "port": 16686,
+            "nodePort": 30005
+          },
+          {
+            "name": "9411",
+            "port": 9411
+          }
+        ],
+        "selector": {
+          "name": "jaeger"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "compose-post-redis"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "compose-post-redis"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "compose-post-redis",
+            "labels": {
+              "name": "compose-post-redis"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "compose-post-redis",
+                "image": "redis:latest@sha256:ae51486efeea8a9b3f85542e408f79a5012d5b7fa35ae19733104ecc6992a248",
+                "command": [
+                  "sh",
+                  "-c",
+                  "rm -f /data/dump.rdb && redis-server --save \"\" --appendonly no"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "compose-post-redis"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 6379
+          }
+        ],
+        "selector": {
+          "name": "compose-post-redis"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "home-timeline-redis"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "home-timeline-redis"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "home-timeline-redis",
+            "labels": {
+              "name": "home-timeline-redis"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "home-timeline-redis",
+                "image": "redis:latest@sha256:ae51486efeea8a9b3f85542e408f79a5012d5b7fa35ae19733104ecc6992a248",
+                "command": [
+                  "sh",
+                  "-c",
+                  "rm -f /data/dump.rdb && redis-server --save \"\" --appendonly no"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "home-timeline-redis"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 6379
+          }
+        ],
+        "selector": {
+          "name": "home-timeline-redis"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "post-storage-memcached"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "post-storage-memcached"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "post-storage-memcached",
+            "labels": {
+              "name": "post-storage-memcached"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "post-storage-memcached",
+                "image": "memcached:1.6.0@sha256:95b8ef0e16a1f0b99d2d9c933afcc6caf395c4e33b281444b38d6951f4c2e3e8",
+                "env": [
+                  {
+                    "name": "MEMCACHED_CACHE_SIZE",
+                    "value": "4096"
+                  },
+                  {
+                    "name": "MEMCACHED_THREADS",
+                    "value": "8"
+                  }
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "post-storage-memcached"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 11211
+          }
+        ],
+        "selector": {
+          "name": "post-storage-memcached"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "post-storage-mongodb"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "post-storage-mongodb"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "post-storage-mongodb",
+            "labels": {
+              "name": "post-storage-mongodb"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "post-storage-mongodb",
+                "image": "mongo:4@sha256:90e9402437d0fafc818fde2cc108ccb445e02b0c85b230bcf3a55def0f0029ec",
+                "args": [
+                  "--nojournal",
+                  "--quiet"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "post-storage-mongodb"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 27017
+          }
+        ],
+        "selector": {
+          "name": "post-storage-mongodb"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "social-graph-mongodb"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "social-graph-mongodb"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "social-graph-mongodb",
+            "labels": {
+              "name": "social-graph-mongodb"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "social-graph-mongodb",
+                "image": "mongo:4@sha256:90e9402437d0fafc818fde2cc108ccb445e02b0c85b230bcf3a55def0f0029ec",
+                "args": [
+                  "--nojournal",
+                  "--quiet"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "social-graph-mongodb"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 27017
+          }
+        ],
+        "selector": {
+          "name": "social-graph-mongodb"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "social-graph-redis"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "social-graph-redis"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "social-graph-redis",
+            "labels": {
+              "name": "social-graph-redis"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "social-graph-redis",
+                "image": "redis:latest@sha256:ae51486efeea8a9b3f85542e408f79a5012d5b7fa35ae19733104ecc6992a248",
+                "command": [
+                  "sh",
+                  "-c",
+                  "rm -f /data/dump.rdb && redis-server --save \"\" --appendonly no"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "social-graph-redis"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 6379
+          }
+        ],
+        "selector": {
+          "name": "social-graph-redis"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-memcached"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "user-memcached"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "user-memcached",
+            "labels": {
+              "name": "user-memcached"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "user-memcached",
+                "image": "memcached:1.6.0@sha256:95b8ef0e16a1f0b99d2d9c933afcc6caf395c4e33b281444b38d6951f4c2e3e8",
+                "env": [
+                  {
+                    "name": "MEMCACHED_CACHE_SIZE",
+                    "value": "4096"
+                  },
+                  {
+                    "name": "MEMCACHED_THREADS",
+                    "value": "8"
+                  }
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-memcached"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 11211
+          }
+        ],
+        "selector": {
+          "name": "user-memcached"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-mongodb"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "user-mongodb"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "user-mongodb",
+            "labels": {
+              "name": "user-mongodb"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "user-mongodb",
+                "image": "mongo:4@sha256:90e9402437d0fafc818fde2cc108ccb445e02b0c85b230bcf3a55def0f0029ec",
+                "args": [
+                  "--nojournal",
+                  "--quiet"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-mongodb"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 27017
+          }
+        ],
+        "selector": {
+          "name": "user-mongodb"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-timeline-mongodb"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "user-timeline-mongodb"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "user-timeline-mongodb",
+            "labels": {
+              "name": "user-timeline-mongodb"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "user-timeline-mongodb",
+                "image": "mongo:4@sha256:90e9402437d0fafc818fde2cc108ccb445e02b0c85b230bcf3a55def0f0029ec",
+                "args": [
+                  "--nojournal",
+                  "--quiet"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-timeline-mongodb"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 27017
+          }
+        ],
+        "selector": {
+          "name": "user-timeline-mongodb"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-timeline-redis"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "user-timeline-redis"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "user-timeline-redis",
+            "labels": {
+              "name": "user-timeline-redis"
+            }
+          },
+          "spec": {
+
+            "containers": [
+              {
+                "name": "user-timeline-redis",
+                "image": "redis:latest@sha256:ae51486efeea8a9b3f85542e408f79a5012d5b7fa35ae19733104ecc6992a248",
+                "command": [
+                  "sh",
+                  "-c",
+                  "rm -f /data/dump.rdb && redis-server --save \"\" --appendonly no"
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "user-timeline-redis"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 6379
+          }
+        ],
+        "selector": {
+          "name": "user-timeline-redis"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "write-home-timeline-rabbitmq"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "write-home-timeline-rabbitmq"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "write-home-timeline-rabbitmq",
+            "labels": {
+              "name": "write-home-timeline-rabbitmq"
+            }
+          },
+          "spec": {
+
+            "containers": [
+              {
+                "name": "write-home-timeline-rabbitmq",
+                "image": "rabbitmq:latest@sha256:d96c58d1e2e55a32a03fa9ba01d00c6383d1aca26fb2790f14ac411fd6e45152",
+                "env": [
+                  {
+                    "name": "RABBITMQ_ERLANG_COOKIE",
+                    "value": "WRITE-HOME-TIMELINE-RABBITMQ"
+                  },
+                  {
+                    "name": "RABBITMQ_DEFAULT_VHOST",
+                    "value": "/"
+                  }
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "write-home-timeline-rabbitmq"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 5672
+          }
+        ],
+        "selector": {
+          "name": "write-home-timeline-rabbitmq"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "write-user-timeline-rabbitmq"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "write-user-timeline-rabbitmq"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "write-user-timeline-rabbitmq",
+            "labels": {
+              "name": "write-user-timeline-rabbitmq"
+            }
+          },
+          "spec": {
+
+            "containers": [
+              {
+                "name": "write-user-timeline-rabbitmq",
+                "image": "rabbitmq:latest@sha256:d96c58d1e2e55a32a03fa9ba01d00c6383d1aca26fb2790f14ac411fd6e45152",
+                "env": [
+                  {
+                    "name": "RABBITMQ_ERLANG_COOKIE",
+                    "value": "WRITE-USER-TIMELINE-RABBITMQ"
+                  },
+                  {
+                    "name": "RABBITMQ_DEFAULT_VHOST",
+                    "value": "/"
+                  }
+                ]
+              }
+            ],
+            "restartPolicy": "Always",
+            "enableServiceLinks": false
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "write-user-timeline-rabbitmq"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 5672
+          }
+        ],
+        "selector": {
+          "name": "write-user-timeline-rabbitmq"
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "cpu-service-1"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "cpu-service-1"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "cpu-service-1",
+            "labels": {
+              "name": "cpu-service-1"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "cpu-service-1",
+                "image": "hyunjinis/cpu-service-1-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "cpu-service-1"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "cpu-service-1"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "cpu-service-2"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "cpu-service-2"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "cpu-service-2",
+            "labels": {
+              "name": "cpu-service-2"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "cpu-service-2",
+                "image": "hyunjinis/cpu-service-2-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "cpu-service-2"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "cpu-service-2"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "cpu-service-3"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "cpu-service-3"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "cpu-service-3",
+            "labels": {
+              "name": "cpu-service-3"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "cpu-service-3",
+                "image": "hyunjinis/cpu-service-3-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "cpu-service-3"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "cpu-service-3"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mem-service-1"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "mem-service-1"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "mem-service-1",
+            "labels": {
+              "name": "mem-service-1"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "mem-service-1",
+                "image": "hyunjinis/mem-service-1-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mem-service-1"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "mem-service-1"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mem-service-2"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "mem-service-2"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "mem-service-2",
+            "labels": {
+              "name": "mem-service-2"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "mem-service-2",
+                "image": "hyunjinis/mem-service-2-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mem-service-2"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "mem-service-2"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mem-service-3"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "mem-service-3"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "mem-service-3",
+            "labels": {
+              "name": "mem-service-3"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "mem-service-3",
+                "image": "hyunjinis/mem-service-3-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mem-service-3"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "mem-service-3"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "fanout-service-1"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "fanout-service-1"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "fanout-service-1",
+            "labels": {
+              "name": "fanout-service-1"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "fanout-service-1",
+                "image": "hyunjinis/fanout-service-1-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "fanout-service-1"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "fanout-service-1"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "fanout-service-2"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "fanout-service-2"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "fanout-service-2",
+            "labels": {
+              "name": "fanout-service-2"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "fanout-service-2",
+                "image": "hyunjinis/fanout-service-2-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "fanout-service-2"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "fanout-service-2"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "fanout-service-3"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "fanout-service-3"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "fanout-service-3",
+            "labels": {
+              "name": "fanout-service-3"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "fanout-service-3",
+                "image": "hyunjinis/fanout-service-3-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "fanout-service-3"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "fanout-service-3"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mixed-service-1"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "mixed-service-1"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "mixed-service-1",
+            "labels": {
+              "name": "mixed-service-1"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "mixed-service-1",
+                "image": "hyunjinis/mixed-service-1-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mixed-service-1"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "mixed-service-1"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mixed-service-2"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "name": "mixed-service-2"
+          }
+        },
+        "template": {
+          "metadata": {
+            "name": "mixed-service-2",
+            "labels": {
+              "name": "mixed-service-2"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "mixed-service-2",
+                "image": "hyunjinis/mixed-service-2-arm64:v1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "namespace": "social-network",
+        "name": "mixed-service-2"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9090
+          }
+        ],
+        "selector": {
+          "name": "mixed-service-2"
+        }
+      }
+    }
+  ]
+}
